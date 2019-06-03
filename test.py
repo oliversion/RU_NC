@@ -1,12 +1,13 @@
-import ca
+from ca import CellularSpace
 from parsepop import get_ca
 import os
+import numpy as np
 
 NUM_OF_RUNS = 10
-NUM_OF_ITER = 10
+NUM_OF_ITER = 200
 TEST_DIR = "test/"
 
-def run_test(density_map, beta, gamma, runs = NUM_OF_RUNS, iters = NUM_OF_ITER, weight = 7, d_inf = 5):
+def run_test(density_map, beta, gamma, runs = NUM_OF_RUNS, iters = NUM_OF_ITER, weight = 7, d_inf = 7):
     params = {'beta': beta,
               'gamma': gamma,
               'wieght': weight,
@@ -16,17 +17,18 @@ def run_test(density_map, beta, gamma, runs = NUM_OF_RUNS, iters = NUM_OF_ITER, 
     cell = (12,7)
     
     dir_name =  TEST_DIR + "b{}g{}/".format(beta,gamma)   
-    os.makedirs(dir_name)
+    os.makedirs(dir_name, exist_ok=True)
     
     cellular_space = CellularSpace(params, density_map = density_map)
     
     for i in range(runs):
+        print("Run number ",i)
         cellular_space.reset()
-        cellular_space.get_infection(cell = cell, n_infected = 1)
+        cellular_space.get_infection(cell = cell, n_infected = 1);
         lines = list()
         for iter in range(iters):
-            s,i,r = cellular_space.get_stats()
-            lines.append("{},{},{}".format(s,i,r))
+            sus,inf,rec = cellular_space.get_stats()
+            lines.append("{},{},{}".format(sus,inf,rec))
             cellular_space.update()
         with open(dir_name + "{}.csv".format(i), 'w') as file:
             file.write("\n".join(lines));
@@ -41,4 +43,5 @@ if __name__ == '__main__':
     
     for beta in values:
         for gamma in values:
-            run_test(density_map)
+            print("Running test for beta={} and gamma={}:".format(beta,gamma))
+            run_test(density_map,beta,gamma)

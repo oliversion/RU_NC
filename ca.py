@@ -136,7 +136,7 @@ class CellularSpace(object):
         if np.sum(n) == 0:
             return 0
 
-        infection_level = np.sum(np.array(i) * wieght_grid) / np.sum(n)
+        infection_level = np.sum(np.array(i) * wieght_grid) / np.sum(np.array(n) * wieght_grid)
         return infection_level
         
     def __update_cell_state__(self, cell, x, y, space):
