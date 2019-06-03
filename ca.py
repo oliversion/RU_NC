@@ -177,7 +177,7 @@ class CellularSpace(object):
         self.space[cell[0], cell[1], 0] -= n_infected #decrease # of susceptible individuals
         print(f'cell {cell} is infected')
     
-    def plot(self, it = None, mode = 'dm'):
+    def plot(self, it = None, mode = 'dm', ax = None):
         '''
         mode: 'dm' - density map; 'vm' - vaccination map; 'sm' - space map
         '''
@@ -188,15 +188,18 @@ class CellularSpace(object):
         color = {'dm': plt.cm.YlGn, 'vm': plt.cm.OrRd, 'sm': plt.cm.OrRd}.get(mode, None)
         color.set_under(color='white') #black
         
-        plt.figure(figsize=(10,10))
+        #plt.figure(figsize=(10,10))
         if im.sum() >0:
             # vmin should be > max value that is not true for zero array
-            plt.imshow(im, cmap=color, vmin=0.0000001, vmax = self.resized_density_map.max())
+            #plt.imshow(im, cmap=color, vmin=0.0000001, vmax = self.resized_density_map.max())
+            ax.imshow(im, cmap=color, vmin=0.0000001, vmax = self.resized_density_map.max())
         else:
-            plt.imshow(im, cmap=color)
+            #plt.imshow(im, cmap=color)
+            ax.imshow(im, cmap=color)
             
-        plt.title('iter {}'.format(it))
-        ax = plt.gca();
+        #plt.title('iter {}'.format(it))
+        #ax = plt.gca();
+        ax.set_title('iter {}'.format(it))
 
         # Major ticks
         ax.set_xticks(np.arange(0, self.x, 1));
@@ -226,16 +229,26 @@ if __name__ == '__main__':
               }
 
     cellular_space = CellularSpace(params, x=24, y=24, density_map = density_map)
-    cellular_space.plot(mode = 'dm')
+    #cellular_space.plot(mode = 'dm')
+    #plt.show()
 
-    # cellular_space.get_cell_state(cell)
-    # cellular_space.get_infection(cell = cell, n_infected = 1)
-    # cellular_space.get_cell_state(cell)
-    # cellular_space.plot(mode = 'sm')
-    # cellular_space.update()
-    #
-    # n_iter = 20
-    # for it in range(n_iter):
-    #     cellular_space.update()
-    #     cellular_space.plot(mode = 'sm')
+    cell = params['cell']
+    
+    #cellular_space.get_cell_state(cell)
+    cellular_space.get_infection(cell = cell, n_infected = 1)
+    #cellular_space.get_cell_state(cell)
+    #cellular_space.plot(mode = 'sm')
+    #cellular_space.update()
+    
+    fig, ax = plt.subplots()
+    
+    print("start")
+    
+    n_iter = 200
+    for it in range(n_iter):
+        ax.cla()
+        cellular_space.plot(mode = 'sm', it = it, ax = ax)
+        plt.pause(0.01)
+        cellular_space.update()
+        
 
