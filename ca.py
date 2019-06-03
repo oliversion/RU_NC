@@ -73,13 +73,20 @@ class CellularSpace(object):
         self.space = np.zeros((self.x, self.y, self.d+2))
         self.space[:,:,0] = self.resized_density_map[:,:]
         
-    def __space_to_plot__(self):
+    def __get_infected_space__(self):
         infected_space = np.sum(self.space, axis=2)
         assert ((infected_space == self.resized_density_map).all),"Density invariant error"
         
         infected_space -= self.space[:,:,0] #exclude # of susceptible individuals
         infected_space -= self.space[:,:,-1] #exclude # of recovered individuals
         return infected_space
+        
+    def __space_to_plot__(self):
+        infected_space = self.__get_infected_space__()
+        resized_dm = self.resized_density_map
+        space_to_plot  = infected_space/resized_dm
+        space_to_plot[resized_dm == 0] = 0
+        return space_to_plot
     
     def get_cell_state(self, cell):
         return self.space[cell[0],cell[1], :]
@@ -192,7 +199,7 @@ class CellularSpace(object):
         if im.sum() >0:
             # vmin should be > max value that is not true for zero array
             #plt.imshow(im, cmap=color, vmin=0.0000001, vmax = self.resized_density_map.max())
-            ax.imshow(im, cmap=color, vmin=0.0000001, vmax = self.resized_density_map.max())
+            ax.imshow(im, cmap=color, vmin=0.0000001, vmax = 1)#self.resized_density_map.max())
         else:
             #plt.imshow(im, cmap=color)
             ax.imshow(im, cmap=color)
@@ -211,6 +218,38 @@ class CellularSpace(object):
 
         # Gridlines based on minor ticks
         ax.grid(which='minor', color='black', linestyle='-', linewidth=2)
+        
+    def get_number_of_healthy(self):
+        healthy = 0
+        healthy_space = self.space[:,:,0]
+        healthy = np.sum(healthy_space)
+        return healthy
+        
+    def get_number_of_infected(self):
+        infected = 0
+        infected_space = self.__get_infected_space__()
+        infected = np.sum(infected_space)
+        return infected
+        
+    def get_number_of_resistant(self):
+        resistant = 0
+        resistant_space = self.space[:,:,-1]
+        resistant = np.sum(resistant_space)
+        return resistant
+        
+    def get_stats(self):
+        healthy = self.get_number_of_healthy()
+        infected = self.get_number_of_infected()
+        resistant = self.get_number_of_resistant()
+        return healthy,infected,resistant
+        
+    def print_stats(self, it = 0):
+        print("Iteration: ", it)
+        healthy, infected, resistant = self.get_stats()
+        print("Number of healthy people: ", healthy)
+        print("Number of infected people: ", infected)
+        print("Number of resistant people: ", resistant)
+        print("-----------------------------------------")
     
 ######################################################## TESTING ############################################################
 if __name__ == '__main__':
@@ -221,7 +260,7 @@ if __name__ == '__main__':
 
 
     params = {'beta': 0.6,
-              'gamma': 0.4,
+              'gamma': 0.6,
               'wieght': 7,
               'time_step': 1,
               'd_inf': 5,
@@ -248,6 +287,7 @@ if __name__ == '__main__':
     for it in range(n_iter):
         ax.cla()
         cellular_space.plot(mode = 'sm', it = it, ax = ax)
+        cellular_space.print_stats(it = it)
         plt.pause(0.01)
         cellular_space.update()
         
