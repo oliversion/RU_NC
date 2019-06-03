@@ -85,7 +85,7 @@ class CellularSpace(object):
         infected_space = self.__get_infected_space__()
         resized_dm = self.resized_density_map
         space_to_plot  = infected_space/resized_dm
-        space_to_plot[resized_dm == 0] = 0
+        space_to_plot[resized_dm == 0] = 0.5
         return space_to_plot
     
     def get_cell_state(self, cell):
