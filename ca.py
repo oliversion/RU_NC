@@ -25,7 +25,24 @@ class CellularSpace(object):
 
         self.__fill_space__()  #current state
     
-    def __resize_map__(self, orignal_map):
+    def __resize_map__(self, original_map):
+        new_map = copy.deepcopy(original_map)
+        cur_x = new_map.shape[0]
+        add_x = self.x - (cur_x % self.x)
+        cur_y = new_map.shape[1]
+        if (add_x > 0):
+            new_map = np.r_[new_map,np.zeros((add_x,cur_y))]
+            cur_x += add_x
+        add_y = self.y - (cur_y % self.y)
+        if (add_y > 0):
+            new_map = np.c_[new_map,np.zeros((cur_x,add_y))]
+            cur_y += add_y
+        
+        return new_map.reshape(self.x, cur_x//self.x, self.y, cur_y//self.y).sum(axis=1).sum(axis=2)
+        
+            
+    
+    def __resize_map2__(self, orignal_map):
         def get_row_compressor(old_dimension, new_dimension):
             dim_compressor = np.zeros((new_dimension, old_dimension))
             bin_size = float(old_dimension) / new_dimension
@@ -191,6 +208,10 @@ class CellularSpace(object):
         im = {'dm': self.resized_density_map,
 #             'vm': self.__resize_map__(self.vaccination_map),
               'sm': self.__space_to_plot__()}.get(mode, None)
+              
+        vmax = {'dm': self.resized_density_map.max(),
+#               'vm': ???,
+                'sm': 1}.get(mode, None)
 
         color = {'dm': plt.cm.YlGn, 'vm': plt.cm.OrRd, 'sm': plt.cm.OrRd}.get(mode, None)
         color.set_under(color='white') #black
@@ -199,7 +220,7 @@ class CellularSpace(object):
         if im.sum() >0:
             # vmin should be > max value that is not true for zero array
             #plt.imshow(im, cmap=color, vmin=0.0000001, vmax = self.resized_density_map.max())
-            ax.imshow(im, cmap=color, vmin=0.0000001, vmax = 1)#self.resized_density_map.max())
+            ax.imshow(im, cmap=color, vmin=0.0000001, vmax = vmax)
         else:
             #plt.imshow(im, cmap=color)
             ax.imshow(im, cmap=color)
@@ -268,20 +289,16 @@ if __name__ == '__main__':
               }
 
     cellular_space = CellularSpace(params, x=24, y=24, density_map = density_map)
-    #cellular_space.plot(mode = 'dm')
-    #plt.show()
+    
 
     cell = params['cell']
     
-    #cellular_space.get_cell_state(cell)
     cellular_space.get_infection(cell = cell, n_infected = 1)
-    #cellular_space.get_cell_state(cell)
-    #cellular_space.plot(mode = 'sm')
-    #cellular_space.update()
     
     fig, ax = plt.subplots()
     
-    print("start")
+    #cellular_space.plot(mode = 'dm', ax = ax)
+    #plt.show()
     
     n_iter = 200
     for it in range(n_iter):
