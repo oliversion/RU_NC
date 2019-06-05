@@ -40,9 +40,11 @@ def plot_average(dir_name):
         ls = np.genfromtxt(TEST_DIR + dir_name + "/{}.csv".format(i),delimiter=',')
         stats += ls
     stats /= NUM_OF_RUNS
-    plt.plot(stats[:,0],'g')
-    plt.plot(stats[:,1],'r')
-    plt.plot(stats[:,2],'b')
+    plt.plot(stats[:,0],'g', label='suspected')
+    plt.plot(stats[:,1],'r', label='infected')
+    plt.plot(stats[:,2],'b', label='resistant')
+    plt.title('#groups vs days')
+    plt.legend()
     plt.savefig(TEST_DIR + '/{}.png'.format(dir_name))
     plt.clf()
 
