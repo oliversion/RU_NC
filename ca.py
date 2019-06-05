@@ -6,13 +6,14 @@ from scipy.misc import imresize
 from parsepop import get_ca
 
 class CellularSpace(object):
-    def __init__(self, params, x=24, y=24, density_map=None, vaccination_map=None):
+    def __init__(self, params, x=24, y=24, density_map=None, vaccination_map=None, vaccination_rate = None):
         '''
         
         '''
         super().__init__()
         self.density_map = density_map          
         self.vaccination_map = vaccination_map   
+        self.vaccination_rate = vaccination_rate
         self.x = x #define space size
         self.y = y #define space size
 
@@ -82,6 +83,11 @@ class CellularSpace(object):
 
         return resized_map
 
+    def __vacinate__(self):
+        vac_map = self.space[:,:,0]*self.vaccination_rate
+        self.space[:,:,-1] = vac_map.astype(int)
+        self.space[:,:,0] -= self.space[:,:,-1]
+        
     def __fill_space__(self):
         #create 3D space for XxY map. Each cell in 1D array [S, I_1, ...I_d, R]
         #Sum(cell) = const 
@@ -89,6 +95,8 @@ class CellularSpace(object):
         self.resized_density_map = self.__resize_map__(self.density_map)
         self.space = np.zeros((self.x, self.y, self.d+2))
         self.space[:,:,0] = self.resized_density_map[:,:]
+        if self.vaccination_rate != None:
+            self.__vacinate__()
         
     def __get_infected_space__(self):
         infected_space = np.sum(self.space, axis=2)
@@ -288,12 +296,12 @@ if __name__ == '__main__':
               'cell': (12,7)
               }
 
-    cellular_space = CellularSpace(params, x=24, y=24, density_map = density_map)
+    cellular_space = CellularSpace(params, x=24, y=24, density_map = density_map, vaccination_rate = 0.9)
     
 
     cell = params['cell']
     
-    cellular_space.get_infection(cell = cell, n_infected = 1)
+    cellular_space.get_infection(cell = cell, n_infected = 20)
     
     fig, ax = plt.subplots()
     
