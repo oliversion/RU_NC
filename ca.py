@@ -301,7 +301,7 @@ if __name__ == '__main__':
 
     cell = params['cell']
     
-    cellular_space.get_infection(cell = cell, n_infected = 20)
+    cellular_space.get_infection(cell = cell, n_infected = 50)
     
     fig, ax = plt.subplots()
     
