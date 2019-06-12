@@ -8,24 +8,24 @@ NUM_OF_RUNS = 10
 NUM_OF_ITER = 200
 TEST_DIR = "test/"
 
-def run_test(density_map, beta, gamma, runs = NUM_OF_RUNS, iters = NUM_OF_ITER, weight = 7, d_inf = 7):
+def run_test(density_map, beta, gamma, vacrate, runs = NUM_OF_RUNS, iters = NUM_OF_ITER, weight = 7, d_inf = 5):
     params = {'beta': beta,
               'gamma': gamma,
               'wieght': weight,
               'time_step': 1,
               'd_inf': d_inf
               }
-    cell = (12,7)
+    cell = (12,6)
     
-    dir_name =  TEST_DIR + "b{}g{}/".format(beta,gamma)   
+    dir_name =  TEST_DIR + "v{}b{}g{}/".format(vacrate,beta,gamma)   
     os.makedirs(dir_name, exist_ok=True)
     
-    cellular_space = CellularSpace(params, density_map = density_map)
+    cellular_space = CellularSpace(params, density_map = density_map, vaccination_rate = vacrate)
     
     for i in range(runs):
         print("Run number ",i)
         cellular_space.reset()
-        cellular_space.get_infection(cell = cell, n_infected = 1);
+        cellular_space.get_infection(cell = cell, n_infected = 20);
         lines = list()
         for iter in range(iters):
             sus,inf,rec = cellular_space.get_stats()
@@ -49,13 +49,15 @@ def plot_average(dir_name):
     plt.clf()
 
 if __name__ == '__main__':
-    #density_map = np.array(get_ca('500x500data.csv'))
-    #density_map = np.flip(density_map, axis = 0)
+    density_map = np.array(get_ca('500x500data.csv'))
+    density_map = np.flip(density_map, axis = 0)
     
     values = [0.2,0.4,0.6,0.8,1]
+    valuesvac = [0,0.5,0.6,0.7,0.8,0.85,0.9,0.95]
     
-    for beta in values:
-        for gamma in values:
-            #print("Running test for beta={} and gamma={}:".format(beta,gamma))
-            #run_test(density_map,beta,gamma)
-            plot_average("b{}g{}".format(beta,gamma))
+    for vacrate in valuesvac:
+        for beta in values:
+            for gamma in values:
+                print("Running test for {}% vaccination rate, beta={} and gamma={}:".format(vacrate,beta,gamma))
+                run_test(density_map,beta,gamma,vacrate)
+                #plot_average("v{}b{}g{}".format(vacrate,beta,gamma))

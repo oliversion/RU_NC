@@ -110,8 +110,8 @@ class CellularSpace(object):
         infected_space = self.__get_infected_space__()
         resized_dm = self.resized_density_map
         space_to_plot  = infected_space/resized_dm
-        space_to_plot[resized_dm == 0] = 0.5
-        return space_to_plot
+        #space_to_plot[resized_dm == 0] = 0.5
+        return np.ma.masked_where(resized_dm == 0,space_to_plot)
     
     def get_cell_state(self, cell):
         return self.space[cell[0],cell[1], :]
@@ -172,11 +172,13 @@ class CellularSpace(object):
         infection_level = self.get_infection_level(space, x, y)
 
         # Estimate # of individualds getting infecrted S-> I_1
-        I = np.sum([flip(self.beta*infection_level) for ind in range(int(cell[0]))])
+        #I = np.sum([flip(self.beta*infection_level) for ind in range(int(cell[0]))])
+        I = np.random.binomial(int(cell[0]),self.beta*infection_level)
         # print(f'({x}, {y}): inf: {infection_level}, p: {self.beta*infection_level}')
 
         # Estimate # of individualds getting recovering I_d-> R
-        R = np.sum([flip(self.gamma) for ind in range(int(cell[-2]))])
+        #R = np.sum([flip(self.gamma) for ind in range(int(cell[-2]))])
+        R = np.random.binomial(int(cell[-2]),self.gamma)
 
         #update state S
         cell[0] = space[x,y,0] - I
@@ -222,7 +224,10 @@ class CellularSpace(object):
                 'sm': 1}.get(mode, None)
 
         color = {'dm': plt.cm.YlGn, 'vm': plt.cm.OrRd, 'sm': plt.cm.OrRd}.get(mode, None)
-        color.set_under(color='white') #black
+        if mode == 'dm':
+            color.set_under(color='black') #black
+        else:
+            color.set_bad(color='black') # for infection map, this will set the border
         
         #plt.figure(figsize=(10,10))
         if im.sum() >0:
@@ -275,7 +280,7 @@ class CellularSpace(object):
     def print_stats(self, it = 0):
         print("Iteration: ", it)
         healthy, infected, resistant = self.get_stats()
-        print("Number of healthy people: ", healthy)
+        print("Number of susceptible people: ", healthy)
         print("Number of infected people: ", infected)
         print("Number of resistant people: ", resistant)
         print("-----------------------------------------")
@@ -293,20 +298,21 @@ if __name__ == '__main__':
               'wieght': 7,
               'time_step': 1,
               'd_inf': 5,
-              'cell': (12,7)
+              'cell': (12,6)
               }
 
-    cellular_space = CellularSpace(params, x=24, y=24, density_map = density_map, vaccination_rate = 0.9)
+    cellular_space = CellularSpace(params, x=24, y=24, density_map = density_map, vaccination_rate = 0)
     
 
     cell = params['cell']
     
-    cellular_space.get_infection(cell = cell, n_infected = 50)
+    cellular_space.get_infection(cell = cell, n_infected = 20)
     
     fig, ax = plt.subplots()
     
     #cellular_space.plot(mode = 'dm', ax = ax)
     #plt.show()
+    #exit()
     
     n_iter = 200
     for it in range(n_iter):
