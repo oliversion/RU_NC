@@ -49,8 +49,8 @@ def plot_average(dir_name):
     plt.clf()
 
 if __name__ == '__main__':
-    density_map = np.array(get_ca('500x500data.csv'))
-    density_map = np.flip(density_map, axis = 0)
+    #density_map = np.array(get_ca('500x500data.csv'))
+    #density_map = np.flip(density_map, axis = 0)
     
     values = [0.2,0.4,0.6,0.8,1]
     valuesvac = [0,0.5,0.6,0.7,0.8,0.85,0.9,0.95]
@@ -59,5 +59,5 @@ if __name__ == '__main__':
         for beta in values:
             for gamma in values:
                 print("Running test for {}% vaccination rate, beta={} and gamma={}:".format(vacrate,beta,gamma))
-                run_test(density_map,beta,gamma,vacrate)
-                #plot_average("v{}b{}g{}".format(vacrate,beta,gamma))
+                #run_test(density_map,beta,gamma,vacrate)
+                plot_average("v{}b{}g{}".format(vacrate,beta,gamma))

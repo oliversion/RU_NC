@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import numpy as np
 import matplotlib.pyplot as plt
 from parsepop import get_ca
@@ -22,12 +24,22 @@ parser = argparse.ArgumentParser(
             description='Runs simulation of infection spread.',
             epilog='''Some examples of usage:\n
 
+simulate.py
+       Runs simluation with default values.
+        - beta = 0.6
+        - gamma = 0.6
+        - weight of same cell on infection = 7
+        - minimum days of infection = 5
+        - vaccination rate = 0%
+        - starting cell: x = 6 y = 12 number of infected = 20
+        - length of simulation: 200 days
+
 simulate.py --map
        Shows the density map of the Netherlands. Can be used for choosing the
        starting cells for infection with -s.
        
-simulate.py -b 0.6 -g 0.6 -i 5
-       Uses beta=0.6 and gamma=0.6 with minimum of 5 days of infection for
+simulate.py -b 0.8 -g 0.4 -i 3
+       Uses beta=0.8 and gamma=0.4 with minimum of 3 days of infection for
        simulation.
        
 simulate.py -d 500
