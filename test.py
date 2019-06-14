@@ -44,65 +44,141 @@ def load_data(dir_name):
 def average_data(stats):
     return stats.sum(axis=0) / NUM_OF_RUNS
     
-def plot_average(stats, dir_name):
+def plot_average(stats):
     max = np.max(stats,axis=0)
     min = np.min(stats,axis=0)
     stats_av = average_data(stats)
+    vac_pop = stats_av[0,-1]
     
-    new_dir_name =  FIGURES_DIR + "sirplots/"  
-    os.makedirs(new_dir_name, exist_ok=True)
-    
-    plt.plot(stats_av[:,0],'g', label='suspected')
-    plt.plot(min[:,0],'g--')
-    plt.plot(max[:,0],'g--')
+    plt.plot(stats_av[:,0] + vac_pop,'g', label='suspected')
+    plt.plot(min[:,0] + vac_pop,'g--')
+    plt.plot(max[:,0] + vac_pop,'g--')
     plt.plot(stats_av[:,1],'r', label='infected')
     plt.plot(min[:,1],'r--')
     plt.plot(max[:,1],'r--')
-    plt.plot(stats_av[:,2],'b', label='resistant')
-    plt.plot(min[:,2],'b--')
-    plt.plot(max[:,2],'b--')
-    plt.title('#groups vs days')
+    plt.plot(stats_av[:,2] - vac_pop,'b', label='resistant')
+    plt.plot(min[:,2] - vac_pop,'b--')
+    plt.plot(max[:,2] - vac_pop,'b--')
+    if vac_pop > 0:
+        plt.plot(np.ones(NUM_OF_ITER)*vac_pop,'k', label='vaccinated')
+    #plt.title('#groups vs days')
+    plt.xlabel("days")
+    plt.ylabel("population")
     plt.legend()
-    plt.savefig(new_dir_name + '/{}.png'.format(dir_name))
-    plt.clf()
     
-def plot_first_day_infected(stats, dir_name):
+def plot_first_day_infected(stats, type='r', label='firstdayinf'):
     stats_av = average_data(stats)
     suspected = stats_av[:,0]
     firstdayinf = [0]
     for i in range(1,NUM_OF_ITER):
         firstdayinf.append(suspected[i-1] - suspected[i])
-    
-    new_dir_name =  FIGURES_DIR + "firstdayinfected/"  
-    os.makedirs(new_dir_name, exist_ok=True)
-    
+        
     plt.title('First time infected vs days')
-    plt.plot(firstdayinf,'r')
-    plt.savefig(new_dir_name + '/{}.png'.format(dir_name))
-    plt.clf()
+    plt.plot(firstdayinf,type,label = label)
     
+def plot_first_day_infected_rate(stats, type='r', label='firstdayinf'):
+    stats_av = average_data(stats)
+    suspected = stats_av[:,0]
+    unvac_pop = stats_av[0,0]
+    firstdayinf = [0]
+    for i in range(1,NUM_OF_ITER):
+        firstdayinf.append((suspected[i-1] - suspected[i])/unvac_pop)
+        
+    plt.title('First time infected ratio against unvaccinated population vs days')
+    plt.plot(firstdayinf,type,label = label)
     
+def plot_num_cases_ratio(stats, type='r', label='num of cases'):
+    stats_av = average_data(stats)
+    suspected = stats_av[:,0]
+    unvac_pop = stats_av[0,0]
     
 
-if __name__ == '__main__':
-    #density_map = np.array(get_ca('500x500data.csv'))
-    #density_map = np.flip(density_map, axis = 0)
+    cases_ratio = (-suspected + unvac_pop)/unvac_pop
         
+    plt.title('Ratio of all time cases against unvaccinated population vs days')
+    plt.plot(cases_ratio,type,label = label)
+    
+def save_fig(dir_name):
+    plt.savefig(dir_name)
+    plt.clf()
+    
+def mk_dir_and_save(dir_name,file_name):
+    os.makedirs(dir_name, exist_ok=True)
+    save_fig(dir_name + '/' + file_name)
+    
+def load_stats(beta,gamma,vacrate):
+    file_name = "v{}b{}g{}".format(vacrate,beta,gamma)
+    return load_data(file_name)
+    
+def plot_for_all(plot_function, dir_name):
     values = [0.2,0.4,0.6,0.8,1]
     valuesvac = [0,0.5,0.6,0.7,0.8,0.85,0.9,0.95]
-    
-    finalcases = dict()
     
     for vacrate in valuesvac:
         for beta in values:
             for gamma in values:
-                print("Running test for {}% vaccination rate, beta={} and gamma={}:".format(vacrate,beta,gamma))
-                #run_test(density_map,beta,gamma,vacrate)
+                stats = load_stats(beta,gamma,vacrate)
                 
-                dir_name = "v{}b{}g{}".format(vacrate,beta,gamma)
-                stats = load_data(dir_name)
-                #plot_average(stats, dir_name)
-                #plot_first_day_infected(stats,dir_name)
+                plot_function(stats)
+                mk_dir_and_save(FIGURES_DIR + dir_name, "v{}b{}g{}.png".format(vacrate,beta,gamma))
                 
-                stats_av = average_data(stats)
-                finalcases[(vacrate,beta,gama)] = 
+def plot_for_vac(plot_function, dir_name):
+    values = [0.2,0.4,0.6,0.8,1]
+    valsvactype = {0:'r', 0.5:'b', 0.8:'g', 0.9:'m', 0.95:'k'}
+    
+    for beta in values:
+        for gamma in values:
+            for vacrate in valsvactype:
+                stats = load_stats(beta,gamma,vacrate)
+                plot_function(stats,type=valsvactype[vacrate],label='{} vac. rate'.format(vacrate))
+            plt.legend()
+            mk_dir_and_save(FIGURES_DIR + dir_name, "b{}g{}.png".format(beta,gamma))
+            
+def run_experiments():
+    density_map = np.array(get_ca('500x500data.csv'))
+    density_map = np.flip(density_map, axis = 0)
+        
+    values = [0.2,0.4,0.6,0.8,1]
+    valuesvac = [0,0.5,0.6,0.7,0.8,0.85,0.9,0.95]
+    
+    for vacrate in valuesvac:
+        for beta in values:
+            for gamma in values:
+                print("Running test for {}% vaccination rate, beta={} and gamma={}".format(vacrate,beta,gamma))
+                run_test(density_map,beta,gamma,vacrate)
+    
+def get_final_num_of_healthy_ratio(stats):
+    stats_av = average_data(stats)
+    starting_pop = stats_av[0,0]
+    ending_pop = stats_av[-1,0]
+    return (starting_pop - ending_pop)/starting_pop
+    
+def plot_reach():
+    values = [0.2,0.4,0.6,0.8,1]
+    
+    for gamma in values:
+        x = list()
+        y = list()
+        for beta in values:
+            stats = load_stats(beta,gamma,0)
+            x.append(beta)
+            y.append(get_final_num_of_healthy_ratio(stats))
+        plt.scatter(x,y,label='{}'.format(gamma))
+    plt.legend()
+    plt.show()
+
+if __name__ == '__main__':
+    #print('Running experiments')
+    #run_experiments()
+    
+    print('Creating plots')
+    plot_for_all(plot_average,'sirplots')
+    #plot_for_all(plot_first_day_infected,'firstdayinfected')
+    
+    #plot_for_vac(plot_first_day_infected_rate, "firstdaycomparison")
+    #plot_for_vac(plot_num_cases_ratio, "casesratio")
+    
+    #plot_reach()
+    
+    
+                

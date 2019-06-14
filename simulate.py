@@ -62,6 +62,9 @@ parser.add_argument('-i','--idays',help='Minimum number of days infected individ
 parser.add_argument('-s','--start',nargs=3,action='append',help='Adds starting cell of infection. Has 3 arguments: x and y coordinates of cell and number of infected people. Can be used multiple times.',type=pos_int, metavar=('X','Y','INF'))
 parser.add_argument('-w','--weight',help='The weight that infection spread of current cell have compared to neighbouring cells.',default=7,type=pos_int)
 
+#parser.add_argument('-x','--xsize',help='The x size of the used map for simulation.',default=24,type=pos_int)
+#parser.add_argument('-y','--ysize',help='The y size of the used map for simulation.',default=24,type=pos_int)
+
 args = parser.parse_args()
 
 density_map = np.array(get_ca('100x100data.csv'))
@@ -74,6 +77,7 @@ params = {'beta': args.beta,
           'd_inf': args.idays
           }
 
+#cellular_space = ca.CellularSpace(params, x=args.xsize, y=args.ysize, density_map = density_map, vaccination_rate = args.vrate)
 cellular_space = ca.CellularSpace(params, x=24, y=24, density_map = density_map, vaccination_rate = args.vrate)
 
 fig, ax = plt.subplots()
