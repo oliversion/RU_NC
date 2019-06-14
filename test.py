@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 NUM_OF_RUNS = 10
 NUM_OF_ITER = 200
 TEST_DIR = "test/"
+FIGURES_DIR = "figures/"
 
 def run_test(density_map, beta, gamma, vacrate, runs = NUM_OF_RUNS, iters = NUM_OF_ITER, weight = 7, d_inf = 5):
     params = {'beta': beta,
@@ -33,31 +34,75 @@ def run_test(density_map, beta, gamma, vacrate, runs = NUM_OF_RUNS, iters = NUM_
             cellular_space.update()
         with open(dir_name + "{}.csv".format(i), 'w') as file:
             file.write("\n".join(lines));
-            
-def plot_average(dir_name):
-    stats = np.zeros((NUM_OF_ITER,3))
+    
+def load_data(dir_name):
+    stats = np.zeros((NUM_OF_RUNS,NUM_OF_ITER,3))
     for i in range(NUM_OF_RUNS):
-        ls = np.genfromtxt(TEST_DIR + dir_name + "/{}.csv".format(i),delimiter=',')
-        stats += ls
-    stats /= NUM_OF_RUNS
-    plt.plot(stats[:,0],'g', label='suspected')
-    plt.plot(stats[:,1],'r', label='infected')
-    plt.plot(stats[:,2],'b', label='resistant')
+        stats[i] = np.genfromtxt(TEST_DIR + dir_name + "/{}.csv".format(i),delimiter=',')
+    return stats
+    
+def average_data(stats):
+    return stats.sum(axis=0) / NUM_OF_RUNS
+    
+def plot_average(stats, dir_name):
+    max = np.max(stats,axis=0)
+    min = np.min(stats,axis=0)
+    stats_av = average_data(stats)
+    
+    new_dir_name =  FIGURES_DIR + "sirplots/"  
+    os.makedirs(new_dir_name, exist_ok=True)
+    
+    plt.plot(stats_av[:,0],'g', label='suspected')
+    plt.plot(min[:,0],'g--')
+    plt.plot(max[:,0],'g--')
+    plt.plot(stats_av[:,1],'r', label='infected')
+    plt.plot(min[:,1],'r--')
+    plt.plot(max[:,1],'r--')
+    plt.plot(stats_av[:,2],'b', label='resistant')
+    plt.plot(min[:,2],'b--')
+    plt.plot(max[:,2],'b--')
     plt.title('#groups vs days')
     plt.legend()
-    plt.savefig(TEST_DIR + '/{}.png'.format(dir_name))
+    plt.savefig(new_dir_name + '/{}.png'.format(dir_name))
     plt.clf()
+    
+def plot_first_day_infected(stats, dir_name):
+    stats_av = average_data(stats)
+    suspected = stats_av[:,0]
+    firstdayinf = [0]
+    for i in range(1,NUM_OF_ITER):
+        firstdayinf.append(suspected[i-1] - suspected[i])
+    
+    new_dir_name =  FIGURES_DIR + "firstdayinfected/"  
+    os.makedirs(new_dir_name, exist_ok=True)
+    
+    plt.title('First time infected vs days')
+    plt.plot(firstdayinf,'r')
+    plt.savefig(new_dir_name + '/{}.png'.format(dir_name))
+    plt.clf()
+    
+    
+    
 
 if __name__ == '__main__':
     #density_map = np.array(get_ca('500x500data.csv'))
     #density_map = np.flip(density_map, axis = 0)
-    
+        
     values = [0.2,0.4,0.6,0.8,1]
     valuesvac = [0,0.5,0.6,0.7,0.8,0.85,0.9,0.95]
+    
+    finalcases = dict()
     
     for vacrate in valuesvac:
         for beta in values:
             for gamma in values:
                 print("Running test for {}% vaccination rate, beta={} and gamma={}:".format(vacrate,beta,gamma))
                 #run_test(density_map,beta,gamma,vacrate)
-                plot_average("v{}b{}g{}".format(vacrate,beta,gamma))
+                
+                dir_name = "v{}b{}g{}".format(vacrate,beta,gamma)
+                stats = load_data(dir_name)
+                #plot_average(stats, dir_name)
+                #plot_first_day_infected(stats,dir_name)
+                
+                stats_av = average_data(stats)
+                finalcases[(vacrate,beta,gama)] = 

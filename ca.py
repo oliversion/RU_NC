@@ -86,6 +86,7 @@ class CellularSpace(object):
     def __vacinate__(self):
         vac_map = self.space[:,:,0]*self.vaccination_rate
         self.space[:,:,-1] = vac_map.astype(int)
+        self.vac_map = vac_map.astype(int)
         self.space[:,:,0] -= self.space[:,:,-1]
         
     def __fill_space__(self):
@@ -108,7 +109,7 @@ class CellularSpace(object):
         
     def __space_to_plot__(self):
         infected_space = self.__get_infected_space__()
-        resized_dm = self.resized_density_map
+        resized_dm = self.resized_density_map - self.vac_map
         space_to_plot  = infected_space/resized_dm
         #space_to_plot[resized_dm == 0] = 0.5
         return np.ma.masked_where(resized_dm == 0,space_to_plot)
@@ -203,12 +204,14 @@ class CellularSpace(object):
         if cell == None:
             cell = (np.random.randint(0, self.x, size=1), np.random.randint(0, self.y, size=1))
         
-        if self.space[cell[0], cell[1], 0] < n_infected:
-            print(f'In ({cell[0]}, {cell[1]}) lives only {self.space[cell[0], cell[1], 0]} \                    people. {n_infected} can not be infected')
-            return
+        #if self.space[cell[0], cell[1], 0] < n_infected:
+        #    print(f'In ({cell[0]}, {cell[1]}) lives only {self.space[cell[0], cell[1], 0]} \                    people. {n_infected} can not be infected')
+        #    return
         
-        self.space[cell[0], cell[1], 1] = n_infected    
-        self.space[cell[0], cell[1], 0] -= n_infected #decrease # of susceptible individuals
+        real_n_infected = min(n_infected, self.space[cell[0], cell[1], 0])
+        
+        self.space[cell[0], cell[1], 1] = real_n_infected    
+        self.space[cell[0], cell[1], 0] -= real_n_infected #decrease # of susceptible individuals
         print(f'cell {cell} is infected')
     
     def plot(self, it = None, mode = 'dm', ax = None):
