@@ -290,7 +290,7 @@ class CellularSpace(object):
     
 ######################################################## TESTING ############################################################
 if __name__ == '__main__':
-    density_map = np.array(get_ca('500x500data.csv'))
+    density_map = np.array(get_ca('100x100data.csv'))
     density_map = np.flip(density_map, axis = 0)
     # plt.imshow(density_map, cmap='YlGn')
     # plt.show()
