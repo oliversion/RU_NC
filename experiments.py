@@ -89,7 +89,7 @@ def plot_first_day_infected_rate(stats, type='r', label='firstdayinf'):
     #plt.title('First time infected ratio against unvaccinated population vs days')
     plt.plot(firstdayinf,type,label = label)
     plt.xlabel("days")
-    plt.ylabel("ratio of newly infected to unvaccinated population")
+    plt.ylabel(r'$R_I$',rotation=0)
     
 def plot_num_cases_ratio(stats, type='r', label='num of cases'):
     stats_av = average_data(stats)
@@ -102,7 +102,7 @@ def plot_num_cases_ratio(stats, type='r', label='num of cases'):
     #plt.title('Ratio of all time cases against unvaccinated population vs days')
     plt.plot(cases_ratio,type,label = label)
     plt.xlabel("days")
-    plt.ylabel("ratio of all time infected to unvaccinated population")
+    plt.ylabel(r'$R_A$',rotation=0)
     
 def save_fig(dir_name):
     plt.savefig(dir_name)
@@ -172,7 +172,7 @@ def plot_reach(vacrate=0):
         plt.plot(x,y,label=r'$\gamma$ = {}'.format(gamma))
     plt.legend()
     plt.xlabel(r'$\beta$')
-    plt.ylabel('reach')
+    plt.ylabel('ratio of all time infected at the end')
     mk_dir_and_save(FIGURES_DIR, "reach.png")
     
 if __name__ == '__main__':
@@ -187,5 +187,3 @@ if __name__ == '__main__':
     plot_for_vac(plot_num_cases_ratio, "casesratio")
     
     plot_reach()
-    
-                
